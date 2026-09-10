@@ -18,6 +18,12 @@
   header{margin-bottom:28px;border-bottom:2px solid var(--ink);padding-bottom:16px;}
   h1{font-size:26px;font-weight:400;margin:0 0 6px;}
   .sub{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);}
+  .banner{
+    font-family:Arial,Helvetica,sans-serif;font-size:12px;padding:10px 14px;border-radius:4px;
+    margin-bottom:18px;display:none;
+  }
+  .banner.show{display:block;}
+  .banner.warn{background:#fdecea;color:#9c3b34;border:1px solid #eec9c4;}
   .panel{border:1px solid var(--line);border-radius:6px;padding:28px;background:var(--paper);}
   label{display:block;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);margin:16px 0 6px;}
   input[type=text], select, textarea{
@@ -43,6 +49,10 @@
   .item-row.oport{background:var(--oport-bg);}
   .item-row.ameacas{background:var(--ameacas-bg);}
   .item-meta{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:var(--muted);display:block;margin-top:3px;}
+  .item-status{font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;margin-top:3px;display:block;}
+  .item-status.pending{color:var(--muted);}
+  .item-status.sent{color:var(--forcas);}
+  .item-status.failed{color:var(--fraquezas);}
   .item-row button{
     border:none;background:none;color:var(--muted);cursor:pointer;font-family:Arial,Helvetica,sans-serif;font-size:12px;
     text-decoration:underline;white-space:nowrap;
@@ -66,6 +76,10 @@
     <h1>Análise SWOT — Curso de APGS</h1>
     <div class="sub">Comissão estudantil · preenchimento individual, item por item</div>
   </header>
+
+  <div class="banner warn" id="config-warning">
+    Este formulário ainda não foi configurado: falta colocar a URL do backend em CONFIG.API_URL no código.
+  </div>
 
   <div class="panel">
     <label for="nome">Seu nome</label>
@@ -100,7 +114,7 @@
 
     <label for="descricao">Descrição do ponto</label>
     <textarea id="descricao" placeholder="Descreva objetivamente o ponto"></textarea>
-    <div class="field-err" id="field-err">Preencha nome, tema e descrição antes de adicionar.</div>
+    <div class="field-err" id="field-err">Preencha nome e descrição antes de adicionar.</div>
 
     <button class="add-btn" onclick="addItem()">+ Adicionar item à lista</button>
 
@@ -117,18 +131,20 @@
 </div>
 
 <script>
-// ---- CONFIGURAÇÃO: substitua pelos valores do seu Google Form ----
+// ---- CONFIGURAÇÃO ----
+// Cole aqui a URL do Apps Script implantado (termina em /exec).
 const CONFIG = {
-  GOOGLE_FORM_ACTION: 'https://docs.google.com/forms/d/e/1FAIpQLSebG3yw2Jo3P66SZw51XnP4JGJLHIM5dlbrC6E5QKC_BYiE2w/formResponse',
-  ENTRY_NOME: 'entry.194747514',
-  ENTRY_CATEGORIA: 'entry.2053941949',
-  ENTRY_TEMA: 'entry.1289493850',
-  ENTRY_DESCRICAO: 'entry.573566503'
+  API_URL: 'https://script.google.com/macros/s/AKfycbx3jcIMh9PcYOicz1hZ_E0qhD-whIGaeDYF_BLzkgHE_kbySs_RgZILqZbSTR9vB-bjGg/exec'
 };
-// --------------------------------------------------------------------
+// -----------------------
+
+if(!CONFIG.API_URL || CONFIG.API_URL.indexOf('COLE_AQUI') === 0){
+  document.getElementById('config-warning').classList.add('show');
+}
 
 const CAT_CLASS = {'Forças':'forcas','Fraquezas':'fraquezas','Oportunidades':'oport','Ameaças':'ameacas'};
 let items = [];
+// status de cada item: 'pending' | 'sending' | 'sent' | 'failed'
 
 function addItem(){
   const nome = document.getElementById('nome').value.trim();
@@ -143,7 +159,7 @@ function addItem(){
   }
   errEl.style.display = 'none';
 
-  items.push({nome, categoria, tema, descricao});
+  items.push({nome, categoria, tema, descricao, status:'pending', error:null});
   document.getElementById('descricao').value = '';
   renderList();
 }
@@ -153,10 +169,18 @@ function removeItem(idx){
   renderList();
 }
 
+function statusLabel(it){
+  if(it.status === 'sending') return 'Enviando…';
+  if(it.status === 'sent') return 'Enviado ✓';
+  if(it.status === 'failed') return 'Falhou: ' + (it.error || 'erro desconhecido') + ' — clique em remover e tente de novo';
+  return 'Ainda não enviado';
+}
+
 function renderList(){
   const body = document.getElementById('list-body');
+  const pendentes = items.filter(i => i.status !== 'sent').length;
   document.getElementById('list-title').textContent = 'Itens desta sessão (' + items.length + ')';
-  document.getElementById('submit-btn').disabled = items.length === 0;
+  document.getElementById('submit-btn').disabled = pendentes === 0;
   if(items.length === 0){
     body.innerHTML = '<div class="empty-list">Nenhum item adicionado ainda.</div>';
     return;
@@ -165,8 +189,9 @@ function renderList(){
     '<div class="item-row ' + CAT_CLASS[it.categoria] + '">' +
       '<div>' + escapeHtml(it.descricao) +
         '<span class="item-meta">' + escapeHtml(it.categoria) + ' · ' + escapeHtml(it.tema) + '</span>' +
+        '<span class="item-status ' + it.status + '">' + escapeHtml(statusLabel(it)) + '</span>' +
       '</div>' +
-      '<button onclick="removeItem(' + idx + ')">remover</button>' +
+      (it.status === 'sent' ? '' : '<button onclick="removeItem(' + idx + ')">remover</button>') +
     '</div>'
   ).join('');
 }
@@ -174,41 +199,53 @@ function renderList(){
 async function submitAll(){
   const msgEl = document.getElementById('form-msg');
   const btn = document.getElementById('submit-btn');
-  if(items.length === 0) return;
-  btn.disabled = true;
-  msgEl.className = 'msg';
-  msgEl.textContent = 'Enviando ' + items.length + ' item(ns)…';
 
-  let ok = 0;
-  for(const it of items){
-    try{
-      const body = new URLSearchParams();
-      body.append(CONFIG.ENTRY_NOME, it.nome);
-      body.append(CONFIG.ENTRY_CATEGORIA, it.categoria);
-      body.append(CONFIG.ENTRY_TEMA, it.tema);
-      body.append(CONFIG.ENTRY_DESCRICAO, it.descricao);
-      await fetch(CONFIG.GOOGLE_FORM_ACTION, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: body.toString()
-      });
-      ok++;
-    }catch(err){
-      // segue tentando os próximos itens mesmo se um falhar
-    }
+  if(!CONFIG.API_URL || CONFIG.API_URL.indexOf('COLE_AQUI') === 0){
+    msgEl.textContent = 'Configuração incompleta: falta a URL do backend.';
+    msgEl.className = 'msg err';
+    return;
   }
 
-  if(ok === items.length){
-    msgEl.textContent = 'Todos os ' + ok + ' itens foram enviados. Obrigado!';
-    msgEl.className = 'msg ok';
-    items = [];
+  const pendentes = items.filter(i => i.status !== 'sent');
+  if(pendentes.length === 0) return;
+  btn.disabled = true;
+
+  let enviados = 0;
+  for(const it of pendentes){
+    it.status = 'sending';
     renderList();
+    try{
+      const res = await fetch(CONFIG.API_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain;charset=utf-8'},
+        body: JSON.stringify({nome: it.nome, categoria: it.categoria, tema: it.tema, descricao: it.descricao})
+      });
+      const json = await res.json();
+      if(json.ok){
+        it.status = 'sent';
+        enviados++;
+      }else{
+        it.status = 'failed';
+        it.error = json.error || 'o servidor recusou o envio';
+      }
+    }catch(err){
+      it.status = 'failed';
+      it.error = 'falha de conexão (' + err.message + ')';
+    }
+    renderList();
+  }
+
+  items = items.filter(i => i.status !== 'sent');
+  renderList();
+
+  if(enviados === pendentes.length){
+    msgEl.textContent = 'Todos os ' + enviados + ' itens foram salvos na planilha. Obrigado!';
+    msgEl.className = 'msg ok';
   }else{
-    msgEl.textContent = ok + ' de ' + items.length + ' itens enviados. Verifique sua conexão e tente reenviar os que faltaram.';
+    msgEl.textContent = enviados + ' de ' + pendentes.length + ' itens salvos. Os que falharam continuam na lista com o motivo — corrija e tente reenviar.';
     msgEl.className = 'msg err';
   }
-  btn.disabled = items.length === 0;
+  btn.disabled = items.filter(i => i.status !== 'sent').length === 0;
 }
 
 function escapeHtml(s){
