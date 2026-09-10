@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SWOT APGS — Mapa de Bolhas por Tema</title>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#1c2b24; --paper:#faf7f0; --line:#d8d0bd; --muted:#6b675a;
+    --forcas:#2e6b4f; --fraquezas:#9c3b34; --oport:#2a5a86; --ameacas:#a56b1f;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;}
+  .wrap{max-width:920px;margin:0 auto;padding:36px 24px 64px;}
+  header{margin-bottom:20px;border-bottom:2px solid var(--ink);padding-bottom:16px;}
+  h1{font-size:24px;font-weight:400;margin:0 0 6px;}
+  .sub{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;font-family:Arial,Helvetica,sans-serif;}
+  .toolbar button{font-size:12px;background:#f1ece0;border:1px solid var(--line);border-radius:4px;padding:7px 12px;cursor:pointer;}
+  .toolbar button:hover{background:var(--line);}
+  .status{font-size:12px;color:var(--muted);}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;font-family:Arial,Helvetica,sans-serif;font-size:12px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .chart-box{position:relative;height:520px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:12px;}
+  .empty{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);padding:40px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Mapa de bolhas — temas mais abordados na SWOT</h1>
+    <div class="sub">Tamanho da bolha = quantas vezes o tema foi citado · cor = categoria mais frequente para esse tema</div>
+  </header>
+
+  <div class="toolbar">
+    <button onclick="loadData()">Atualizar dados</button>
+    <span class="status" id="status">Carregando…</span>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:#2e6b4f"></span>Forças</span>
+    <span><span class="dot" style="background:#9c3b34"></span>Fraquezas</span>
+    <span><span class="dot" style="background:#2a5a86"></span>Oportunidades</span>
+    <span><span class="dot" style="background:#a56b1f"></span>Ameaças</span>
+  </div>
+
+  <div class="chart-box">
+    <canvas id="bubbleChart"></canvas>
+  </div>
+</div>
+
+<script>
+// ---- CONFIGURAÇÃO: substitua pelos dados da sua planilha do Google ----
+const CONFIG = {
+  SHEET_ID: '1nZ1vSHk9saMFEUxvGPW4OvHrYvCn0T52JUbheyqS4MI',
+  SHEET_GID: '512426205' // identifica a aba de respostas específica
+};
+// -------------------------------------------------------------------------
+
+const CAT_COLOR = {
+  'Forças': '#2e6b4f',
+  'Fraquezas': '#9c3b34',
+  'Oportunidades': '#2a5a86',
+  'Ameaças': '#a56b1f'
+};
+const CAT_ORDER = ['Forças','Fraquezas','Oportunidades','Ameaças'];
+
+let chartInstance = null;
+
+function csvUrl(){
+  return 'https://docs.google.com/spreadsheets/d/' + CONFIG.SHEET_ID +
+         '/gviz/tq?tqx=out:csv&gid=' + CONFIG.SHEET_GID;
+}
+
+function hashOffset(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) % 1000; }
+  return (h/1000) * 8 - 4; // valor entre -4 e 4, para espalhar bolhas na vertical
+}
+
+async function loadData(){
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = 'Carregando…';
+  try{
+    const res = await fetch(csvUrl());
+    if(!res.ok) throw new Error('Não foi possível ler a planilha (verifique se está compartilhada como "qualquer pessoa com o link, leitor").');
+    const csvText = await res.text();
+    const parsed = Papa.parse(csvText, {header:true, skipEmptyLines:true});
+    const rows = parsed.data;
+
+    if(rows.length === 0){
+      statusEl.textContent = 'Nenhuma resposta ainda.';
+      renderChart([]);
+      return;
+    }
+
+    // agrupa por tema: conta total e conta por categoria
+    const byTheme = {};
+    rows.forEach(r => {
+      const tema = (r['Tema']||'').trim();
+      const categoria = (r['Categoria']||'').trim();
+      if(!tema) return;
+      if(!byTheme[tema]) byTheme[tema] = {total:0, porCategoria:{}};
+      byTheme[tema].total++;
+      byTheme[tema].porCategoria[categoria] = (byTheme[tema].porCategoria[categoria]||0) + 1;
+    });
+
+    const bubbles = Object.entries(byTheme).map(([tema, info]) => {
+      let catDominante = CAT_ORDER[0], max = 0;
+      CAT_ORDER.forEach(c => {
+        if((info.porCategoria[c]||0) > max){ max = info.porCategoria[c]; catDominante = c; }
+      });
+      const catIndex = CAT_ORDER.indexOf(catDominante) + 1;
+      return {
+        tema, total: info.total, categoria: catDominante,
+        x: catIndex, y: hashOffset(tema),
+        r: 8 + Math.sqrt(info.total) * 10,
+        detalhe: CAT_ORDER.map(c => info.porCategoria[c] ? (c+': '+info.porCategoria[c]) : null).filter(Boolean).join(' · ')
+      };
+    });
+
+    statusEl.textContent = rows.length + ' respostas · ' + bubbles.length + ' temas distintos';
+    renderChart(bubbles);
+  }catch(err){
+    statusEl.textContent = 'Erro ao carregar: ' + err.message;
+    renderChart([]);
+  }
+}
+
+function renderChart(bubbles){
+  const ctx = document.getElementById('bubbleChart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+
+  if(bubbles.length === 0){
+    chartInstance = null;
+    ctx.canvas.parentElement.innerHTML = '<div class="empty">Sem dados para exibir ainda. Configure CONFIG.SHEET_ID e aguarde as respostas chegarem.</div>';
+    return;
+  }
+
+  const dataset = {
+    data: bubbles,
+    backgroundColor: bubbles.map(b => CAT_COLOR[b.categoria] + 'aa'),
+    borderColor: bubbles.map(b => CAT_COLOR[b.categoria]),
+    borderWidth: 1.5
+  };
+
+  chartInstance = new Chart(ctx, {
+    type: 'bubble',
+    data: { datasets: [dataset] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          min: 0.3, max: 4.7,
+          ticks: {
+            stepSize: 1,
+            callback: v => CAT_ORDER[Math.round(v)-1] || ''
+          },
+          grid: { color: '#e5e0d0' }
+        },
+        y: { display: false, min: -6, max: 6 }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const b = ctx.raw;
+              return b.tema + ' — ' + b.total + ' citações' + (b.detalhe ? ' (' + b.detalhe + ')' : '');
+            }
+          }
+        }
+      }
+    },
+    plugins: [{
+      id: 'bubbleLabels',
+      afterDatasetsDraw(chart){
+        const {ctx} = chart;
+        chart.data.datasets[0].data.forEach((b, i) => {
+          const meta = chart.getDatasetMeta(0).data[i];
+          if(!meta) return;
+          ctx.save();
+          ctx.font = '11px Arial';
+          ctx.fillStyle = '#1c2b24';
+          ctx.textAlign = 'center';
+          ctx.fillText(b.tema.length > 16 ? b.tema.slice(0,15)+'…' : b.tema, meta.x, meta.y - b.r - 4);
+          ctx.restore();
+        });
+      }
+    }]
+  });
+}
+
+loadData();
+</script>
+</body>
+</html>

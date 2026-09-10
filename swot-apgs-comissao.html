@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SWOT APGS — Comissão Estudantil</title>
+<style>
+  :root{
+    --ink:#1c2b24; --paper:#faf7f0; --paper-2:#f1ece0; --line:#d8d0bd;
+    --forcas:#2e6b4f; --forcas-bg:#e6efe6;
+    --fraquezas:#9c3b34; --fraquezas-bg:#f5e6e2;
+    --oport:#2a5a86; --oport-bg:#e4edf3;
+    --ameacas:#a56b1f; --ameacas-bg:#f5ecda;
+    --muted:#6b675a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;}
+  .wrap{max-width:760px;margin:0 auto;padding:36px 24px 64px;}
+  header{margin-bottom:28px;border-bottom:2px solid var(--ink);padding-bottom:16px;}
+  h1{font-size:26px;font-weight:400;margin:0 0 6px;}
+  .sub{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);}
+  .panel{border:1px solid var(--line);border-radius:6px;padding:28px;background:var(--paper);}
+  label{display:block;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);margin:16px 0 6px;}
+  input[type=text], select, textarea{
+    width:100%;padding:10px 12px;font-size:15px;font-family:Georgia,serif;
+    border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink);
+  }
+  select{font-family:Arial,Helvetica,sans-serif;font-size:14px;}
+  textarea{min-height:64px;resize:vertical;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .add-btn{
+    margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:bold;
+    background:var(--paper-2);border:1px solid var(--line);border-radius:4px;padding:9px 16px;cursor:pointer;
+  }
+  .add-btn:hover{background:var(--line);}
+  .item-list{margin-top:24px;border-top:1px solid var(--line);padding-top:16px;}
+  .item-list h3{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);margin:0 0 10px;}
+  .item-row{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+    padding:10px 12px;border-radius:4px;margin-bottom:8px;font-size:14px;
+  }
+  .item-row.forcas{background:var(--forcas-bg);}
+  .item-row.fraquezas{background:var(--fraquezas-bg);}
+  .item-row.oport{background:var(--oport-bg);}
+  .item-row.ameacas{background:var(--ameacas-bg);}
+  .item-meta{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:var(--muted);display:block;margin-top:3px;}
+  .item-row button{
+    border:none;background:none;color:var(--muted);cursor:pointer;font-family:Arial,Helvetica,sans-serif;font-size:12px;
+    text-decoration:underline;white-space:nowrap;
+  }
+  .empty-list{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:var(--muted);font-style:italic;}
+  .actions{margin-top:26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  button.submit{
+    font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;
+    background:var(--ink);color:var(--paper);border:none;border-radius:4px;padding:12px 22px;cursor:pointer;
+  }
+  button.submit:disabled{opacity:.5;cursor:default;}
+  .msg{font-family:Arial,Helvetica,sans-serif;font-size:13px;}
+  .msg.ok{color:var(--forcas);}
+  .msg.err{color:var(--fraquezas);}
+  .field-err{color:var(--fraquezas);font-family:Arial,Helvetica,sans-serif;font-size:12px;margin-top:4px;display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Análise SWOT — Curso de APGS</h1>
+    <div class="sub">Comissão estudantil · preenchimento individual, item por item</div>
+  </header>
+
+  <div class="panel">
+    <label for="nome">Seu nome</label>
+    <input type="text" id="nome" placeholder="Nome completo">
+
+    <div class="row2">
+      <div>
+        <label for="categoria">Categoria</label>
+        <select id="categoria">
+          <option value="Forças">Forças</option>
+          <option value="Fraquezas">Fraquezas</option>
+          <option value="Oportunidades">Oportunidades</option>
+          <option value="Ameaças">Ameaças</option>
+        </select>
+      </div>
+      <div>
+        <label for="tema">Tema</label>
+        <select id="tema">
+          <option value="Grade curricular">Grade curricular</option>
+          <option value="Corpo docente">Corpo docente</option>
+          <option value="Infraestrutura">Infraestrutura</option>
+          <option value="Mercado de trabalho">Mercado de trabalho</option>
+          <option value="Estágio e prática">Estágio e prática</option>
+          <option value="Pesquisa e extensão">Pesquisa e extensão</option>
+          <option value="Reconhecimento institucional">Reconhecimento institucional</option>
+          <option value="Gestão do colegiado">Gestão do colegiado</option>
+          <option value="Comunicação e visibilidade">Comunicação e visibilidade</option>
+          <option value="Vida estudantil">Vida estudantil</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="descricao">Descrição do ponto</label>
+    <textarea id="descricao" placeholder="Descreva objetivamente o ponto"></textarea>
+    <div class="field-err" id="field-err">Preencha nome, tema e descrição antes de adicionar.</div>
+
+    <button class="add-btn" onclick="addItem()">+ Adicionar item à lista</button>
+
+    <div class="item-list">
+      <h3 id="list-title">Itens desta sessão (0)</h3>
+      <div id="list-body"><div class="empty-list">Nenhum item adicionado ainda.</div></div>
+    </div>
+
+    <div class="actions">
+      <button class="submit" id="submit-btn" onclick="submitAll()" disabled>Enviar itens</button>
+      <span class="msg" id="form-msg"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- CONFIGURAÇÃO: substitua pelos valores do seu Google Form ----
+const CONFIG = {
+  GOOGLE_FORM_ACTION: 'https://docs.google.com/forms/d/e/1FAIpQLSebG3yw2Jo3P66SZw51XnP4JGJLHIM5dlbrC6E5QKC_BYiE2w/formResponse',
+  ENTRY_NOME: 'entry.194747514',
+  ENTRY_CATEGORIA: 'entry.2053941949',
+  ENTRY_TEMA: 'entry.1289493850',
+  ENTRY_DESCRICAO: 'entry.573566503'
+};
+// --------------------------------------------------------------------
+
+const CAT_CLASS = {'Forças':'forcas','Fraquezas':'fraquezas','Oportunidades':'oport','Ameaças':'ameacas'};
+let items = [];
+
+function addItem(){
+  const nome = document.getElementById('nome').value.trim();
+  const categoria = document.getElementById('categoria').value;
+  const tema = document.getElementById('tema').value;
+  const descricao = document.getElementById('descricao').value.trim();
+  const errEl = document.getElementById('field-err');
+
+  if(!nome || !descricao){
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  items.push({nome, categoria, tema, descricao});
+  document.getElementById('descricao').value = '';
+  renderList();
+}
+
+function removeItem(idx){
+  items.splice(idx,1);
+  renderList();
+}
+
+function renderList(){
+  const body = document.getElementById('list-body');
+  document.getElementById('list-title').textContent = 'Itens desta sessão (' + items.length + ')';
+  document.getElementById('submit-btn').disabled = items.length === 0;
+  if(items.length === 0){
+    body.innerHTML = '<div class="empty-list">Nenhum item adicionado ainda.</div>';
+    return;
+  }
+  body.innerHTML = items.map((it, idx) =>
+    '<div class="item-row ' + CAT_CLASS[it.categoria] + '">' +
+      '<div>' + escapeHtml(it.descricao) +
+        '<span class="item-meta">' + escapeHtml(it.categoria) + ' · ' + escapeHtml(it.tema) + '</span>' +
+      '</div>' +
+      '<button onclick="removeItem(' + idx + ')">remover</button>' +
+    '</div>'
+  ).join('');
+}
+
+async function submitAll(){
+  const msgEl = document.getElementById('form-msg');
+  const btn = document.getElementById('submit-btn');
+  if(items.length === 0) return;
+  btn.disabled = true;
+  msgEl.className = 'msg';
+  msgEl.textContent = 'Enviando ' + items.length + ' item(ns)…';
+
+  let ok = 0;
+  for(const it of items){
+    try{
+      const body = new URLSearchParams();
+      body.append(CONFIG.ENTRY_NOME, it.nome);
+      body.append(CONFIG.ENTRY_CATEGORIA, it.categoria);
+      body.append(CONFIG.ENTRY_TEMA, it.tema);
+      body.append(CONFIG.ENTRY_DESCRICAO, it.descricao);
+      await fetch(CONFIG.GOOGLE_FORM_ACTION, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: body.toString()
+      });
+      ok++;
+    }catch(err){
+      // segue tentando os próximos itens mesmo se um falhar
+    }
+  }
+
+  if(ok === items.length){
+    msgEl.textContent = 'Todos os ' + ok + ' itens foram enviados. Obrigado!';
+    msgEl.className = 'msg ok';
+    items = [];
+    renderList();
+  }else{
+    msgEl.textContent = ok + ' de ' + items.length + ' itens enviados. Verifique sua conexão e tente reenviar os que faltaram.';
+    msgEl.className = 'msg err';
+  }
+  btn.disabled = items.length === 0;
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+</body>
+</html>
