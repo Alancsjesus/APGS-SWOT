@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SWOT APGS — Relatório de Consolidação</title>
+<style>
+  :root{
+    --ink:#1c2b24; --paper:#faf7f0; --paper-2:#f1ece0; --line:#d8d0bd; --muted:#6b675a;
+    --forcas:#2e6b4f; --forcas-bg:#e6efe6;
+    --fraquezas:#9c3b34; --fraquezas-bg:#f5e6e2;
+    --oport:#2a5a86; --oport-bg:#e4edf3;
+    --ameacas:#a56b1f; --ameacas-bg:#f5ecda;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;}
+  .wrap{max-width:880px;margin:0 auto;padding:36px 24px 64px;}
+  header{margin-bottom:20px;border-bottom:2px solid var(--ink);padding-bottom:16px;}
+  h1{font-size:24px;font-weight:400;margin:0 0 6px;}
+  .sub{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);}
+  .pagenav{display:flex;gap:20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;margin:0 0 24px;}
+  .pagenav a{color:var(--muted);text-decoration:none;padding-bottom:4px;border-bottom:2px solid transparent;}
+  .pagenav a:hover{color:var(--ink);}
+  .pagenav a.active{color:var(--ink);font-weight:bold;border-bottom-color:var(--ink);}
+  .banner{
+    font-family:Arial,Helvetica,sans-serif;font-size:12px;padding:10px 14px;border-radius:4px;
+    margin-bottom:18px;display:none;
+  }
+  .banner.show{display:block;}
+  .banner.warn{background:#fdecea;color:#9c3b34;border:1px solid #eec9c4;}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:20px;font-family:Arial,Helvetica,sans-serif;}
+  .toolbar button{font-size:12px;background:var(--paper-2);border:1px solid var(--line);border-radius:4px;padding:7px 12px;cursor:pointer;}
+  .toolbar button:hover{background:var(--line);}
+  .status{font-size:12px;color:var(--muted);}
+  .summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;}
+  .summary-card{border-radius:6px;padding:14px 16px;font-family:Arial,Helvetica,sans-serif;}
+  .summary-card .n{font-size:26px;font-weight:bold;line-height:1;}
+  .summary-card .label{font-size:12px;margin-top:4px;}
+  .summary-card.forcas{background:var(--forcas-bg);color:var(--forcas);}
+  .summary-card.fraquezas{background:var(--fraquezas-bg);color:var(--fraquezas);}
+  .summary-card.oport{background:var(--oport-bg);color:var(--oport);}
+  .summary-card.ameacas{background:var(--ameacas-bg);color:var(--ameacas);}
+
+  .cat-section{margin-bottom:34px;}
+  .cat-head{
+    display:flex;align-items:baseline;gap:10px;padding-bottom:8px;margin-bottom:14px;
+    border-bottom:2px solid;
+  }
+  .cat-head h2{font-size:19px;font-weight:400;margin:0;}
+  .cat-head .cat-count{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:var(--muted);}
+  .cat-section.forcas .cat-head{border-color:var(--forcas);} .cat-section.forcas h2{color:var(--forcas);}
+  .cat-section.fraquezas .cat-head{border-color:var(--fraquezas);} .cat-section.fraquezas h2{color:var(--fraquezas);}
+  .cat-section.oport .cat-head{border-color:var(--oport);} .cat-section.oport h2{color:var(--oport);}
+  .cat-section.ameacas .cat-head{border-color:var(--ameacas);} .cat-section.ameacas h2{color:var(--ameacas);}
+
+  .theme-block{margin-bottom:18px;padding-left:14px;border-left:3px solid var(--line);}
+  .theme-head{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif;}
+  .theme-head .theme-name{font-size:14px;font-weight:bold;color:var(--ink);}
+  .theme-head .theme-count{font-size:11px;color:var(--muted);}
+  .detail-item{
+    font-size:14px;line-height:1.5;padding:8px 12px;background:#fff;border:1px solid var(--line);
+    border-radius:4px;margin-bottom:6px;
+  }
+  .detail-item .who{display:block;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:var(--muted);margin-top:4px;}
+  .empty{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);padding:30px 0;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Relatório de consolidação — SWOT do curso de APGS</h1>
+    <div class="sub">Organizado por categoria → tema → detalhamento dos pontos citados</div>
+  </header>
+
+  <nav class="pagenav" id="pagenav">
+    <a href="swot-apgs-comissao.html" data-page="swot-apgs-comissao.html">Preencher</a>
+    <a href="swot-consolidacao.html" data-page="swot-consolidacao.html">Consolidação</a>
+    <a href="swot-mapa-de-bolhas.html" data-page="swot-mapa-de-bolhas.html">Mapa de bolhas</a>
+  </nav>
+  <script>
+    (function(){
+      var current = location.pathname.split('/').pop();
+      document.querySelectorAll('.pagenav a').forEach(function(a){
+        if(a.getAttribute('data-page') === current) a.classList.add('active');
+      });
+    })();
+  </script>
+
+  <div class="banner warn" id="config-warning">
+    Este relatório ainda não foi configurado: falta colocar a URL do backend em CONFIG.API_URL no código
+    (a mesma URL usada nas outras duas páginas).
+  </div>
+
+  <div class="toolbar">
+    <button onclick="loadData()">Atualizar dados</button>
+    <span class="status" id="status">Carregando…</span>
+  </div>
+
+  <div class="summary-row" id="summary-row"></div>
+
+  <div id="report-body"></div>
+</div>
+
+<script>
+// ---- CONFIGURAÇÃO ----
+// Cole aqui a MESMA URL do Apps Script usada nas outras páginas (termina em /exec).
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbx3jcIMh9PcYOicz1hZ_E0qhD-whIGaeDYF_BLzkgHE_kbySs_RgZILqZbSTR9vB-bjGg/exec'
+};
+// -----------------------
+
+if(!CONFIG.API_URL || CONFIG.API_URL.indexOf('COLE_AQUI') === 0){
+  document.getElementById('config-warning').classList.add('show');
+}
+
+const CAT_ORDER = ['Forças','Fraquezas','Oportunidades','Ameaças'];
+const CAT_CLASS = {'Forças':'forcas','Fraquezas':'fraquezas','Oportunidades':'oport','Ameaças':'ameacas'};
+
+async function loadData(){
+  const statusEl = document.getElementById('status');
+  if(!CONFIG.API_URL || CONFIG.API_URL.indexOf('COLE_AQUI') === 0){
+    statusEl.textContent = 'Configuração incompleta.';
+    return;
+  }
+  statusEl.textContent = 'Carregando…';
+  try{
+    const res = await fetch(CONFIG.API_URL);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'erro desconhecido no servidor');
+    const rows = json.rows || [];
+    statusEl.textContent = rows.length + ' resposta' + (rows.length===1?'':'s') + ' ao todo';
+    renderReport(rows);
+  }catch(err){
+    statusEl.textContent = 'Erro ao carregar: ' + err.message;
+    renderReport([]);
+  }
+}
+
+function renderReport(rows){
+  const summaryEl = document.getElementById('summary-row');
+  const bodyEl = document.getElementById('report-body');
+
+  if(rows.length === 0){
+    summaryEl.innerHTML = '';
+    bodyEl.innerHTML = '<div class="empty">Nenhuma resposta ainda.</div>';
+    return;
+  }
+
+  // agrupa: categoria -> tema -> [itens]
+  const grouped = {};
+  CAT_ORDER.forEach(c => grouped[c] = {});
+  rows.forEach(r => {
+    const categoria = (r['Categoria']||'').toString().trim();
+    const tema = (r['Tema']||'').toString().trim() || 'Sem tema';
+    const nome = (r['Nome']||'').toString().trim();
+    const descricao = (r['Descricao']||'').toString().trim();
+    if(!grouped[categoria]) grouped[categoria] = {};
+    if(!grouped[categoria][tema]) grouped[categoria][tema] = [];
+    grouped[categoria][tema].push({nome, descricao});
+  });
+
+  // cards de resumo
+  summaryEl.innerHTML = CAT_ORDER.map(cat => {
+    const total = Object.values(grouped[cat]||{}).reduce((s,arr)=>s+arr.length,0);
+    return '<div class="summary-card ' + CAT_CLASS[cat] + '">' +
+      '<div class="n">' + total + '</div>' +
+      '<div class="label">' + escapeHtml(cat) + '</div>' +
+    '</div>';
+  }).join('');
+
+  // corpo do relatório
+  bodyEl.innerHTML = CAT_ORDER.map(cat => {
+    const temas = grouped[cat] || {};
+    const temaNomes = Object.keys(temas).sort((a,b) => temas[b].length - temas[a].length);
+    const totalCat = temaNomes.reduce((s,t)=>s+temas[t].length,0);
+
+    if(totalCat === 0){
+      return '<div class="cat-section ' + CAT_CLASS[cat] + '">' +
+        '<div class="cat-head"><h2>' + escapeHtml(cat) + '</h2><span class="cat-count">nenhum item ainda</span></div>' +
+      '</div>';
+    }
+
+    const temasHtml = temaNomes.map(tema => {
+      const itens = temas[tema];
+      const itensHtml = itens.map(it =>
+        '<div class="detail-item">' + escapeHtml(it.descricao) +
+          '<span class="who">' + escapeHtml(it.nome) + '</span>' +
+        '</div>'
+      ).join('');
+      return '<div class="theme-block">' +
+        '<div class="theme-head">' +
+          '<span class="theme-name">' + escapeHtml(tema) + '</span>' +
+          '<span class="theme-count">(' + itens.length + ' cita' + (itens.length===1?'ção':'ções') + ')</span>' +
+        '</div>' +
+        itensHtml +
+      '</div>';
+    }).join('');
+
+    return '<div class="cat-section ' + CAT_CLASS[cat] + '">' +
+      '<div class="cat-head"><h2>' + escapeHtml(cat) + '</h2><span class="cat-count">' + totalCat + ' cita' + (totalCat===1?'ção':'ções') + ' · ' + temaNomes.length + ' tema' + (temaNomes.length===1?'':'s') + '</span></div>' +
+      temasHtml +
+    '</div>';
+  }).join('');
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+loadData();
+</script>
+</body>
+</html>

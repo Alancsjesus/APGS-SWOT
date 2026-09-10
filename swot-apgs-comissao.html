@@ -18,6 +18,10 @@
   header{margin-bottom:28px;border-bottom:2px solid var(--ink);padding-bottom:16px;}
   h1{font-size:26px;font-weight:400;margin:0 0 6px;}
   .sub{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);}
+  .pagenav{display:flex;gap:20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;margin:0 0 24px;}
+  .pagenav a{color:var(--muted);text-decoration:none;padding-bottom:4px;border-bottom:2px solid transparent;}
+  .pagenav a:hover{color:var(--ink);}
+  .pagenav a.active{color:var(--ink);font-weight:bold;border-bottom-color:var(--ink);}
   .banner{
     font-family:Arial,Helvetica,sans-serif;font-size:12px;padding:10px 14px;border-radius:4px;
     margin-bottom:18px;display:none;
@@ -68,6 +72,22 @@
   .msg.ok{color:var(--forcas);}
   .msg.err{color:var(--fraquezas);}
   .field-err{color:var(--fraquezas);font-family:Arial,Helvetica,sans-serif;font-size:12px;margin-top:4px;display:none;}
+  label.label-help{display:flex;align-items:center;gap:6px;}
+  .help-wrap{position:relative;display:inline-flex;}
+  .help-icon{
+    width:17px;height:17px;border-radius:50%;background:var(--paper-2);border:1px solid var(--line);
+    color:var(--muted);font-size:11px;font-family:Arial,Helvetica,sans-serif;font-weight:bold;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;line-height:1;
+  }
+  .help-icon:hover, .help-icon.open{background:var(--line);color:var(--ink);}
+  .help-tooltip{
+    display:none;position:absolute;top:24px;left:0;z-index:6;width:270px;background:#fff;
+    border:1px solid var(--line);border-radius:6px;padding:12px 14px;font-family:Arial,Helvetica,sans-serif;
+    font-size:12px;line-height:1.5;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.1);
+  }
+  .help-tooltip.show{display:block;}
+  .help-tooltip .htitle{font-weight:bold;display:block;margin-bottom:4px;}
+  .help-tooltip .hex{color:var(--muted);display:block;margin-top:6px;font-style:italic;}
 </style>
 </head>
 <body>
@@ -76,6 +96,20 @@
     <h1>Análise SWOT — Curso de APGS</h1>
     <div class="sub">Comissão estudantil · preenchimento individual, item por item</div>
   </header>
+
+  <nav class="pagenav" id="pagenav">
+    <a href="swot-apgs-comissao.html" data-page="swot-apgs-comissao.html">Preencher</a>
+    <a href="swot-consolidacao.html" data-page="swot-consolidacao.html">Consolidação</a>
+    <a href="swot-mapa-de-bolhas.html" data-page="swot-mapa-de-bolhas.html">Mapa de bolhas</a>
+  </nav>
+  <script>
+    (function(){
+      var current = location.pathname.split('/').pop();
+      document.querySelectorAll('.pagenav a').forEach(function(a){
+        if(a.getAttribute('data-page') === current) a.classList.add('active');
+      });
+    })();
+  </script>
 
   <div class="banner warn" id="config-warning">
     Este formulário ainda não foi configurado: falta colocar a URL do backend em CONFIG.API_URL no código.
@@ -87,7 +121,13 @@
 
     <div class="row2">
       <div>
-        <label for="categoria">Categoria</label>
+        <label for="categoria" class="label-help">
+          Categoria
+          <span class="help-wrap">
+            <button type="button" class="help-icon" id="help-btn" aria-label="Ajuda sobre as categorias da SWOT">?</button>
+            <div class="help-tooltip" id="help-tooltip"></div>
+          </span>
+        </label>
         <select id="categoria">
           <option value="Forças">Forças</option>
           <option value="Fraquezas">Fraquezas</option>
@@ -145,6 +185,62 @@ if(!CONFIG.API_URL || CONFIG.API_URL.indexOf('COLE_AQUI') === 0){
 const CAT_CLASS = {'Forças':'forcas','Fraquezas':'fraquezas','Oportunidades':'oport','Ameaças':'ameacas'};
 let items = [];
 // status de cada item: 'pending' | 'sending' | 'sent' | 'failed'
+
+const HELP_TEXT = {
+  'Forças': {
+    titulo: 'Forças (interno, positivo)',
+    texto: 'Características internas do curso que já funcionam bem hoje e dão vantagem a ele.',
+    exemplo: 'Ex.: corpo docente qualificado, boa integração entre turmas.'
+  },
+  'Fraquezas': {
+    titulo: 'Fraquezas (interno, negativo)',
+    texto: 'Pontos internos que atrapalham o curso hoje e dependem de ação da própria coordenação/comunidade para melhorar.',
+    exemplo: 'Ex.: pouca carga prática, baixa divulgação interna.'
+  },
+  'Oportunidades': {
+    titulo: 'Oportunidades (externo, positivo)',
+    texto: 'Fatores de fora do curso que ele pode aproveitar a seu favor.',
+    exemplo: 'Ex.: alta demanda do mercado por gestores públicos, novos editais de fomento.'
+  },
+  'Ameaças': {
+    titulo: 'Ameaças (externo, negativo)',
+    texto: 'Fatores de fora do curso que podem prejudicá-lo e fogem do controle direto da coordenação.',
+    exemplo: 'Ex.: concorrência de outros cursos, mudanças na legislação do setor.'
+  }
+};
+
+function updateHelpTooltip(){
+  const categoria = document.getElementById('categoria').value;
+  const info = HELP_TEXT[categoria];
+  const tip = document.getElementById('help-tooltip');
+  if(!info){ tip.innerHTML = ''; return; }
+  tip.innerHTML =
+    '<span class="htitle">' + escapeHtml(info.titulo) + '</span>' +
+    escapeHtml(info.texto) +
+    '<span class="hex">' + escapeHtml(info.exemplo) + '</span>';
+}
+
+document.getElementById('categoria').addEventListener('change', updateHelpTooltip);
+
+document.getElementById('help-btn').addEventListener('click', function(e){
+  e.stopPropagation();
+  const tip = document.getElementById('help-tooltip');
+  const btn = document.getElementById('help-btn');
+  const opening = !tip.classList.contains('show');
+  if(opening) updateHelpTooltip();
+  tip.classList.toggle('show', opening);
+  btn.classList.toggle('open', opening);
+});
+
+document.addEventListener('click', function(e){
+  const wrap = document.querySelector('.help-wrap');
+  if(wrap && !wrap.contains(e.target)){
+    document.getElementById('help-tooltip').classList.remove('show');
+    document.getElementById('help-btn').classList.remove('open');
+  }
+});
+
+updateHelpTooltip();
 
 function addItem(){
   const nome = document.getElementById('nome').value.trim();
