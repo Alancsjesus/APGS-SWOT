@@ -138,16 +138,7 @@
       <div>
         <label for="tema">Tema</label>
         <select id="tema">
-          <option value="Grade curricular">Grade curricular</option>
-          <option value="Corpo docente">Corpo docente</option>
-          <option value="Infraestrutura">Infraestrutura</option>
-          <option value="Mercado de trabalho">Mercado de trabalho</option>
-          <option value="Estágio e prática">Estágio e prática</option>
-          <option value="Pesquisa e extensão">Pesquisa e extensão</option>
-          <option value="Reconhecimento institucional">Reconhecimento institucional</option>
-          <option value="Gestão do colegiado">Gestão do colegiado</option>
-          <option value="Comunicação e visibilidade">Comunicação e visibilidade</option>
-          <option value="Vida estudantil">Vida estudantil</option>
+          <option value="">— selecione a categoria primeiro —</option>
         </select>
       </div>
     </div>
@@ -186,6 +177,34 @@ const CAT_CLASS = {'Forças':'forcas','Fraquezas':'fraquezas','Oportunidades':'o
 let items = [];
 // status de cada item: 'pending' | 'sending' | 'sent' | 'failed'
 
+// Mapeamento tema → natureza (interno = Forças/Fraquezas · externo = Oportunidades/Ameaças)
+const TEMAS_INTERNOS = [
+  'Grade curricular','Corpo docente','Infraestrutura','Estágio e prática',
+  'Pesquisa e extensão','Gestão do colegiado','Comunicação e visibilidade','Vida estudantil'
+];
+const TEMAS_EXTERNOS = [
+  'Mercado de trabalho','Reconhecimento e concorrência com outros cursos',
+  'Legislação e políticas públicas','Parcerias e convênios externos'
+];
+const NATUREZA_POR_CATEGORIA = {
+  'Forças': TEMAS_INTERNOS,
+  'Fraquezas': TEMAS_INTERNOS,
+  'Oportunidades': TEMAS_EXTERNOS,
+  'Ameaças': TEMAS_EXTERNOS
+};
+
+function refreshTemaOptions(){
+  const categoria = document.getElementById('categoria').value;
+  const temaSelect = document.getElementById('tema');
+  const temas = NATUREZA_POR_CATEGORIA[categoria] || [];
+  temaSelect.innerHTML = temas.map(t => '<option value="' + escapeHtml(t) + '">' + escapeHtml(t) + '</option>').join('');
+}
+
+document.getElementById('categoria').addEventListener('change', function(){
+  refreshTemaOptions();
+  updateHelpTooltip();
+});
+
 const HELP_TEXT = {
   'Forças': {
     titulo: 'Forças (interno, positivo)',
@@ -220,8 +239,6 @@ function updateHelpTooltip(){
     '<span class="hex">' + escapeHtml(info.exemplo) + '</span>';
 }
 
-document.getElementById('categoria').addEventListener('change', updateHelpTooltip);
-
 document.getElementById('help-btn').addEventListener('click', function(e){
   e.stopPropagation();
   const tip = document.getElementById('help-tooltip');
@@ -241,6 +258,7 @@ document.addEventListener('click', function(e){
 });
 
 updateHelpTooltip();
+refreshTemaOptions();
 
 function addItem(){
   const nome = document.getElementById('nome').value.trim();
