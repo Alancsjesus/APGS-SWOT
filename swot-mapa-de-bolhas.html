@@ -3,15 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>SWOT APGS — Mapa de Bolhas por Tema</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <style>
   :root{
-    --ink:#1c2b24; --paper:#faf7f0; --line:#d8d0bd; --muted:#6b675a;
-    --forcas:#2e6b4f; --fraquezas:#9c3b34; --oport:#2a5a86; --ameacas:#a56b1f;
+    --ink:#1c2b24; --paper:#faf7f0; --paper-2:#f1ece0; --line:#d8d0bd; --muted:#6b675a;
+    --forcas:#2e6b4f; --forcas-bg:#e6efe6;
+    --fraquezas:#9c3b34; --fraquezas-bg:#f5e6e2;
+    --oport:#2a5a86; --oport-bg:#e4edf3;
+    --ameacas:#a56b1f; --ameacas-bg:#f5ecda;
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;}
-  .wrap{max-width:920px;margin:0 auto;padding:36px 24px 64px;}
+  .wrap{max-width:1040px;margin:0 auto;padding:36px 24px 64px;}
   header{margin-bottom:20px;border-bottom:2px solid var(--ink);padding-bottom:16px;}
   h1{font-size:24px;font-weight:400;margin:0 0 6px;}
   .sub{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);}
@@ -26,27 +29,52 @@
   .banner.show{display:block;}
   .banner.warn{background:#fdecea;color:#9c3b34;border:1px solid #eec9c4;}
   .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;font-family:Arial,Helvetica,sans-serif;}
-  .toolbar button{font-size:12px;background:#f1ece0;border:1px solid var(--line);border-radius:4px;padding:7px 12px;cursor:pointer;}
+  .toolbar button{font-size:12px;background:var(--paper-2);border:1px solid var(--line);border-radius:4px;padding:7px 12px;cursor:pointer;}
   .toolbar button:hover{background:var(--line);}
   .status{font-size:12px;color:var(--muted);}
-  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;font-family:Arial,Helvetica,sans-serif;font-size:12px;}
-  .legend span{display:inline-flex;align-items:center;gap:6px;}
-  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
-  .chart-box{position:relative;height:520px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:12px;}
-  .empty{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);padding:40px;text-align:center;}
+  .note{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+
+  .bubble-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:640px){ .bubble-grid{grid-template-columns:1fr;} }
+  .bubble-card{border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden;}
+  .bubble-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:12px 16px;font-family:Arial,Helvetica,sans-serif;color:#fff;
+  }
+  .bubble-head h2{font-size:15px;font-weight:bold;margin:0;letter-spacing:.2px;}
+  .bubble-head .total{font-size:12px;opacity:.9;}
+  .bubble-head.forcas{background:var(--forcas);}
+  .bubble-head.fraquezas{background:var(--fraquezas);}
+  .bubble-head.oport{background:var(--oport);}
+  .bubble-head.ameacas{background:var(--ameacas);}
+  .bubble-body{padding:8px;}
+  .bubble-body.forcas{background:var(--forcas-bg);}
+  .bubble-body.fraquezas{background:var(--fraquezas-bg);}
+  .bubble-body.oport{background:var(--oport-bg);}
+  .bubble-body.ameacas{background:var(--ameacas-bg);}
+  .bubble-body svg{display:block;width:100%;height:auto;}
+  .bubble-empty{
+    font-family:Arial,Helvetica,sans-serif;font-size:12px;color:var(--muted);font-style:italic;
+    padding:36px 16px;text-align:center;
+  }
+  circle.theme-bubble{cursor:default;}
+  circle.theme-bubble:hover{filter:brightness(1.08);}
+  text.bubble-label{font-family:Arial,Helvetica,sans-serif;fill:#1c2b24;pointer-events:none;text-anchor:middle;dominant-baseline:middle;}
+  text.bubble-count{font-family:Arial,Helvetica,sans-serif;fill:#1c2b24;opacity:.75;pointer-events:none;text-anchor:middle;dominant-baseline:middle;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>Mapa de bolhas — temas mais abordados na SWOT</h1>
-    <div class="sub">Tamanho da bolha = quantas vezes o tema foi citado · cor = categoria mais frequente para esse tema</div>
+    <div class="sub">Um painel por categoria · tamanho da bolha = número de citações daquele tema, dentro daquela categoria</div>
   </header>
 
   <nav class="pagenav" id="pagenav">
     <a href="swot-apgs-comissao.html" data-page="swot-apgs-comissao.html">Preencher</a>
     <a href="swot-consolidacao.html" data-page="swot-consolidacao.html">Consolidação</a>
     <a href="swot-mapa-de-bolhas.html" data-page="swot-mapa-de-bolhas.html">Mapa de bolhas</a>
+    <a href="swot-apresentacao-coordenador.html" data-page="swot-apresentacao-coordenador.html">Apresentação</a>
   </nav>
   <script>
     (function(){
@@ -59,7 +87,7 @@
 
   <div class="banner warn" id="config-warning">
     Este mapa ainda não foi configurado: falta colocar a URL do backend em CONFIG.API_URL no código
-    (a mesma URL usada no formulário).
+    (a mesma URL usada nas outras páginas).
   </div>
 
   <div class="toolbar">
@@ -67,21 +95,18 @@
     <span class="status" id="status">Carregando…</span>
   </div>
 
-  <div class="legend">
-    <span><span class="dot" style="background:#2e6b4f"></span>Forças</span>
-    <span><span class="dot" style="background:#9c3b34"></span>Fraquezas</span>
-    <span><span class="dot" style="background:#2a5a86"></span>Oportunidades</span>
-    <span><span class="dot" style="background:#a56b1f"></span>Ameaças</span>
-  </div>
+  <p class="note">
+    Um mesmo tema pode aparecer em dois painéis diferentes (ex.: "Infraestrutura" como Força e também como Fraqueza) —
+    isso é esperado: cada bolha representa quantas vezes aquele tema foi citado especificamente naquela categoria.
+    Passe o mouse sobre uma bolha para ver o nome completo e a contagem.
+  </p>
 
-  <div class="chart-box">
-    <canvas id="bubbleChart"></canvas>
-  </div>
+  <div class="bubble-grid" id="bubble-grid"></div>
 </div>
 
 <script>
 // ---- CONFIGURAÇÃO ----
-// Cole aqui a MESMA URL do Apps Script usada no formulário (termina em /exec).
+// Cole aqui a MESMA URL do Apps Script usada nas outras páginas (termina em /exec).
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbx3jcIMh9PcYOicz1hZ_E0qhD-whIGaeDYF_BLzkgHE_kbySs_RgZILqZbSTR9vB-bjGg/exec'
 };
@@ -91,21 +116,10 @@ if(!CONFIG.API_URL || CONFIG.API_URL.indexOf('COLE_AQUI') === 0){
   document.getElementById('config-warning').classList.add('show');
 }
 
-const CAT_COLOR = {
-  'Forças': '#2e6b4f',
-  'Fraquezas': '#9c3b34',
-  'Oportunidades': '#2a5a86',
-  'Ameaças': '#a56b1f'
-};
 const CAT_ORDER = ['Forças','Fraquezas','Oportunidades','Ameaças'];
-
-let chartInstance = null;
-
-function hashOffset(str){
-  let h = 0;
-  for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) % 1000; }
-  return (h/1000) * 8 - 4; // valor entre -4 e 4, para espalhar bolhas na vertical
-}
+const CAT_CLASS = {'Forças':'forcas','Fraquezas':'fraquezas','Oportunidades':'oport','Ameaças':'ameacas'};
+const CAT_COLOR = {'Forças':'#2e6b4f','Fraquezas':'#9c3b34','Oportunidades':'#2a5a86','Ameaças':'#a56b1f'};
+const CAT_COLOR_LIGHT = {'Forças':'#8fbf9f','Fraquezas':'#cf938c','Oportunidades':'#83a8c4','Ameaças':'#d4ac6e'};
 
 async function loadData(){
   const statusEl = document.getElementById('status');
@@ -121,107 +135,120 @@ async function loadData(){
     if(!json.ok) throw new Error(json.error || 'erro desconhecido no servidor');
     const rows = json.rows || [];
 
-    if(rows.length === 0){
-      statusEl.textContent = 'Nenhuma resposta ainda.';
-      renderChart([]);
-      return;
-    }
-
-    const byTheme = {};
+    // conta por categoria -> tema, sem misturar entre categorias
+    const counts = {};
+    CAT_ORDER.forEach(c => counts[c] = {});
     rows.forEach(r => {
-      const tema = (r['Tema']||'').toString().trim();
       const categoria = (r['Categoria']||'').toString().trim();
-      if(!tema) return;
-      if(!byTheme[tema]) byTheme[tema] = {total:0, porCategoria:{}};
-      byTheme[tema].total++;
-      byTheme[tema].porCategoria[categoria] = (byTheme[tema].porCategoria[categoria]||0) + 1;
+      const tema = (r['Tema']||'').toString().trim();
+      if(!tema || !counts[categoria]) return;
+      counts[categoria][tema] = (counts[categoria][tema]||0) + 1;
     });
 
-    const bubbles = Object.entries(byTheme).map(([tema, info]) => {
-      let catDominante = CAT_ORDER[0], max = 0;
-      CAT_ORDER.forEach(c => {
-        if((info.porCategoria[c]||0) > max){ max = info.porCategoria[c]; catDominante = c; }
-      });
-      const catIndex = CAT_ORDER.indexOf(catDominante) + 1;
-      return {
-        tema, total: info.total, categoria: catDominante,
-        x: catIndex, y: hashOffset(tema),
-        r: 8 + Math.sqrt(info.total) * 10,
-        detalhe: CAT_ORDER.map(c => info.porCategoria[c] ? (c+': '+info.porCategoria[c]) : null).filter(Boolean).join(' · ')
-      };
-    });
-
-    statusEl.textContent = rows.length + ' respostas · ' + bubbles.length + ' temas distintos';
-    renderChart(bubbles);
+    statusEl.textContent = rows.length + ' resposta' + (rows.length===1?'':'s') + ' ao todo';
+    renderGrid(counts);
   }catch(err){
     statusEl.textContent = 'Erro ao carregar: ' + err.message;
-    renderChart([]);
+    renderGrid(null);
   }
 }
 
-function renderChart(bubbles){
-  const box = document.querySelector('.chart-box');
-  if(bubbles.length === 0){
-    if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
-    box.innerHTML = '<div class="empty">Sem dados para exibir ainda.</div>';
+function renderGrid(counts){
+  const grid = document.getElementById('bubble-grid');
+  grid.innerHTML = CAT_ORDER.map(cat => {
+    const cls = CAT_CLASS[cat];
+    const temas = counts ? (counts[cat] || {}) : {};
+    const total = Object.values(temas).reduce((s,n)=>s+n,0);
+    return '<div class="bubble-card">' +
+      '<div class="bubble-head ' + cls + '"><h2>' + escapeHtml(cat) + '</h2>' +
+        '<span class="total">' + total + ' cita' + (total===1?'ção':'ções') + '</span></div>' +
+      '<div class="bubble-body ' + cls + '" id="body-' + cls + '"></div>' +
+    '</div>';
+  }).join('');
+
+  CAT_ORDER.forEach(cat => drawPack(cat, counts ? (counts[cat]||{}) : {}));
+}
+
+function drawPack(categoria, temaCounts){
+  const cls = CAT_CLASS[categoria];
+  const container = document.getElementById('body-' + cls);
+  const entries = Object.entries(temaCounts);
+
+  if(entries.length === 0){
+    container.innerHTML = '<div class="bubble-empty">Nenhum item ainda nesta categoria.</div>';
     return;
   }
-  if(!document.getElementById('bubbleChart')){
-    box.innerHTML = '<canvas id="bubbleChart"></canvas>';
-  }
-  const ctx = document.getElementById('bubbleChart').getContext('2d');
-  if(chartInstance) chartInstance.destroy();
 
-  const dataset = {
-    data: bubbles,
-    backgroundColor: bubbles.map(b => CAT_COLOR[b.categoria] + 'aa'),
-    borderColor: bubbles.map(b => CAT_COLOR[b.categoria]),
-    borderWidth: 1.5
-  };
+  const W = 460, H = 300;
+  const root = d3.hierarchy({ children: entries.map(([tema, count]) => ({ tema, count })) })
+    .sum(d => d.count)
+    .sort((a,b) => b.value - a.value);
 
-  chartInstance = new Chart(ctx, {
-    type: 'bubble',
-    data: { datasets: [dataset] },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          min: 0.3, max: 4.7,
-          ticks: { stepSize: 1, callback: v => CAT_ORDER[Math.round(v)-1] || '' },
-          grid: { color: '#e5e0d0' }
-        },
-        y: { display: false, min: -6, max: 6 }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              const b = ctx.raw;
-              return b.tema + ' — ' + b.total + ' citações' + (b.detalhe ? ' (' + b.detalhe + ')' : '');
-            }
-          }
-        }
-      }
-    },
-    plugins: [{
-      id: 'bubbleLabels',
-      afterDatasetsDraw(chart){
-        const {ctx} = chart;
-        chart.data.datasets[0].data.forEach((b, i) => {
-          const meta = chart.getDatasetMeta(0).data[i];
-          if(!meta) return;
-          ctx.save();
-          ctx.font = '11px Arial';
-          ctx.fillStyle = '#1c2b24';
-          ctx.textAlign = 'center';
-          ctx.fillText(b.tema.length > 16 ? b.tema.slice(0,15)+'…' : b.tema, meta.x, meta.y - b.r - 4);
-          ctx.restore();
-        });
-      }
-    }]
+  d3.pack().size([W, H]).padding(6)(root);
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+  root.leaves().forEach(leaf => {
+    const g = document.createElementNS(svgNS, 'g');
+
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('class', 'theme-bubble');
+    circle.setAttribute('cx', leaf.x);
+    circle.setAttribute('cy', leaf.y);
+    circle.setAttribute('r', leaf.r);
+    circle.setAttribute('fill', CAT_COLOR_LIGHT[categoria]);
+    circle.setAttribute('fill-opacity', '0.55');
+    circle.setAttribute('stroke', CAT_COLOR[categoria]);
+    circle.setAttribute('stroke-width', '1.5');
+
+    const title = document.createElementNS(svgNS, 'title');
+    title.textContent = leaf.data.tema + ' — ' + leaf.data.count + ' citação' + (leaf.data.count===1?'':'ões');
+    circle.appendChild(title);
+    g.appendChild(circle);
+
+    // rótulo só se a bolha for grande o suficiente para caber texto legível
+    if(leaf.r > 26){
+      const nomeCurto = leaf.data.tema.length > 18 ? leaf.data.tema.slice(0,17) + '…' : leaf.data.tema;
+      const partes = quebraLinha(nomeCurto, leaf.r);
+      partes.forEach((linha, i) => {
+        const text = document.createElementNS(svgNS, 'text');
+        text.setAttribute('class', 'bubble-label');
+        text.setAttribute('x', leaf.x);
+        text.setAttribute('y', leaf.y + (i - (partes.length-1)/2) * 12 - (leaf.r > 40 ? 6 : 0));
+        text.setAttribute('font-size', leaf.r > 40 ? '11' : '9.5');
+        text.textContent = linha;
+        g.appendChild(text);
+      });
+      const countText = document.createElementNS(svgNS, 'text');
+      countText.setAttribute('class', 'bubble-count');
+      countText.setAttribute('x', leaf.x);
+      countText.setAttribute('y', leaf.y + (partes.length * 12) / 2 + (leaf.r > 40 ? 4 : 0));
+      countText.setAttribute('font-size', '10');
+      countText.setAttribute('font-weight', 'bold');
+      countText.textContent = leaf.data.count;
+      g.appendChild(countText);
+    }
+
+    svg.appendChild(g);
   });
+
+  container.innerHTML = '';
+  container.appendChild(svg);
+}
+
+function quebraLinha(texto, raio){
+  if(raio < 40 || texto.length <= 10) return [texto];
+  const palavras = texto.split(' ');
+  if(palavras.length < 2) return [texto];
+  const meio = Math.ceil(palavras.length/2);
+  return [palavras.slice(0,meio).join(' '), palavras.slice(meio).join(' ')];
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
 loadData();

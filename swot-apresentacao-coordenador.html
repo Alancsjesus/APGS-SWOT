@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SWOT APGS — Apresentação ao Coordenador</title>
+<style>
+  :root{
+    --ink:#1c2b24; --paper:#faf7f0; --paper-2:#f1ece0; --line:#d8d0bd; --muted:#6b675a;
+    --forcas:#2e6b4f; --forcas-bg:#e6efe6;
+    --fraquezas:#9c3b34; --fraquezas-bg:#f5e6e2;
+    --oport:#2a5a86; --oport-bg:#e4edf3;
+    --ameacas:#a56b1f; --ameacas-bg:#f5ecda;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;}
+  .wrap{max-width:1000px;margin:0 auto;padding:36px 24px 70px;}
+  header{margin-bottom:20px;border-bottom:2px solid var(--ink);padding-bottom:16px;}
+  h1{font-size:26px;font-weight:400;margin:0 0 6px;}
+  .sub{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);}
+  .pagenav{display:flex;gap:20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;margin:0 0 24px;}
+  .pagenav a{color:var(--muted);text-decoration:none;padding-bottom:4px;border-bottom:2px solid transparent;}
+  .pagenav a:hover{color:var(--ink);}
+  .pagenav a.active{color:var(--ink);font-weight:bold;border-bottom-color:var(--ink);}
+  .banner{font-family:Arial,Helvetica,sans-serif;font-size:12px;padding:10px 14px;border-radius:4px;margin-bottom:18px;display:none;}
+  .banner.show{display:block;}
+  .banner.warn{background:#fdecea;color:#9c3b34;border:1px solid #eec9c4;}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif;}
+  .toolbar button{font-size:12px;background:var(--paper-2);border:1px solid var(--line);border-radius:4px;padding:7px 12px;cursor:pointer;}
+  .toolbar button:hover{background:var(--line);}
+  .status{font-size:12px;color:var(--muted);}
+  .print-hint{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:var(--muted);margin-bottom:24px;}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px;}
+  .kpi{border-radius:8px;padding:16px;text-align:center;font-family:Arial,Helvetica,sans-serif;color:#fff;}
+  .kpi .n{font-size:30px;font-weight:bold;line-height:1;}
+  .kpi .l{font-size:12px;margin-top:6px;opacity:.95;}
+  .kpi.forcas{background:var(--forcas);} .kpi.fraquezas{background:var(--fraquezas);}
+  .kpi.oport{background:var(--oport);} .kpi.ameacas{background:var(--ameacas);}
+
+  .matrix{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:16px;margin-bottom:36px;}
+  .quad{border-radius:8px;overflow:hidden;border:1px solid var(--line);}
+  .quad-head{padding:12px 18px;font-family:Arial,Helvetica,sans-serif;color:#fff;display:flex;justify-content:space-between;align-items:baseline;}
+  .quad-head h2{font-size:16px;margin:0;font-weight:bold;}
+  .quad-head span{font-size:11px;opacity:.9;}
+  .quad.forcas .quad-head{background:var(--forcas);} .quad.fraquezas .quad-head{background:var(--fraquezas);}
+  .quad.oport .quad-head{background:var(--oport);} .quad.ameacas .quad-head{background:var(--ameacas);}
+  .quad-body{padding:16px 18px;background:#fff;min-height:120px;}
+  .quad.forcas .quad-body{background:var(--forcas-bg);} .quad.fraquezas .quad-body{background:var(--fraquezas-bg);}
+  .quad.oport .quad-body{background:var(--oport-bg);} .quad.ameacas .quad-body{background:var(--ameacas-bg);}
+  .theme-line{margin-bottom:10px;}
+  .theme-line .tname{font-family:Arial,Helvetica,sans-serif;font-size:12.5px;font-weight:bold;display:flex;justify-content:space-between;}
+  .theme-line .bar-track{height:6px;background:rgba(255,255,255,.6);border-radius:3px;margin:4px 0 6px;overflow:hidden;}
+  .theme-line .bar-fill{height:100%;border-radius:3px;}
+  .theme-line ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.5;}
+  .empty-quad{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:var(--muted);font-style:italic;}
+
+  footer{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:20px;}
+
+  @media print{
+    .pagenav, .toolbar, .print-hint{display:none;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Análise SWOT — Curso de APGS</h1>
+    <div class="sub">Apresentação consolidada à coordenação · visão da comissão estudantil</div>
+  </header>
+
+  <nav class="pagenav" id="pagenav">
+    <a href="swot-apgs-comissao.html" data-page="swot-apgs-comissao.html">Preencher</a>
+    <a href="swot-consolidacao.html" data-page="swot-consolidacao.html">Consolidação</a>
+    <a href="swot-mapa-de-bolhas.html" data-page="swot-mapa-de-bolhas.html">Mapa de bolhas</a>
+    <a href="swot-apresentacao-coordenador.html" data-page="swot-apresentacao-coordenador.html">Apresentação</a>
+  </nav>
+  <script>
+    (function(){
+      var current = location.pathname.split('/').pop();
+      document.querySelectorAll('.pagenav a').forEach(function(a){
+        if(a.getAttribute('data-page') === current) a.classList.add('active');
+      });
+    })();
+  </script>
+
+  <div class="banner warn" id="config-warning">
+    Esta página ainda não foi configurada: falta colocar a URL do backend em CONFIG.API_URL no código.
+  </div>
+
+  <div class="toolbar">
+    <button onclick="loadData()">Atualizar dados</button>
+    <button onclick="window.print()">Exportar / imprimir PDF</button>
+    <span class="status" id="status">Carregando…</span>
+  </div>
+  <div class="print-hint">Esta página não exibe nomes de alunos — apenas a contagem e o conteúdo dos pontos levantados.</div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="matrix" id="matrix"></div>
+
+  <footer>Documento gerado a partir das respostas da comissão estudantil de APGS. Conteúdo consolidado automaticamente, sem identificação individual.</footer>
+</div>
+
+<script>
+// ---- CONFIGURAÇÃO ----
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbx3jcIMh9PcYOicz1hZ_E0qhD-whIGaeDYF_BLzkgHE_kbySs_RgZILqZbSTR9vB-bjGg/exec'
+};
+// -----------------------
+
+if(!CONFIG.API_URL || CONFIG.API_URL.indexOf('COLE_AQUI') === 0){
+  document.getElementById('config-warning').classList.add('show');
+}
+
+const CAT_ORDER = ['Forças','Fraquezas','Oportunidades','Ameaças'];
+const CAT_CLASS = {'Forças':'forcas','Fraquezas':'fraquezas','Oportunidades':'oport','Ameaças':'ameacas'};
+const CAT_BAR = {'Forças':'#2e6b4f','Fraquezas':'#9c3b34','Oportunidades':'#2a5a86','Ameaças':'#a56b1f'};
+
+async function loadData(){
+  const statusEl = document.getElementById('status');
+  if(!CONFIG.API_URL || CONFIG.API_URL.indexOf('COLE_AQUI') === 0){
+    statusEl.textContent = 'Configuração incompleta.';
+    return;
+  }
+  statusEl.textContent = 'Carregando…';
+  try{
+    const url = CONFIG.API_URL + '?t=' + Date.now();
+    const res = await fetch(url, { cache: 'no-store' });
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'erro desconhecido no servidor');
+    const rows = json.rows || [];
+    statusEl.textContent = rows.length + ' resposta' + (rows.length===1?'':'s') + ' consolidada' + (rows.length===1?'':'s');
+    render(rows);
+  }catch(err){
+    statusEl.textContent = 'Erro ao carregar: ' + err.message;
+    render([]);
+  }
+}
+
+function render(rows){
+  // NOTA: propositalmente não lemos/usamos o campo "Nome" nesta página.
+  const grouped = {};
+  CAT_ORDER.forEach(c => grouped[c] = {});
+  rows.forEach(r => {
+    const categoria = (r['Categoria']||'').toString().trim();
+    const tema = (r['Tema']||'').toString().trim() || 'Sem tema';
+    const descricao = (r['Descricao']||'').toString().trim();
+    if(!grouped[categoria]) return;
+    if(!grouped[categoria][tema]) grouped[categoria][tema] = [];
+    grouped[categoria][tema].push(descricao);
+  });
+
+  const kpisEl = document.getElementById('kpis');
+  kpisEl.innerHTML = CAT_ORDER.map(cat => {
+    const total = Object.values(grouped[cat]).reduce((s,arr)=>s+arr.length,0);
+    return '<div class="kpi ' + CAT_CLASS[cat] + '"><div class="n">' + total + '</div><div class="l">' + escapeHtml(cat) + '</div></div>';
+  }).join('');
+
+  const matrixEl = document.getElementById('matrix');
+  matrixEl.innerHTML = CAT_ORDER.map(cat => {
+    const temas = grouped[cat];
+    const temaNomes = Object.keys(temas).sort((a,b) => temas[b].length - temas[a].length);
+    const totalCat = temaNomes.reduce((s,t)=>s+temas[t].length,0);
+    const maxCount = temaNomes.length ? temas[temaNomes[0]].length : 1;
+
+    const corpo = temaNomes.length === 0
+      ? '<div class="empty-quad">Nenhum item ainda.</div>'
+      : temaNomes.map(tema => {
+          const lista = temas[tema];
+          const pct = Math.max(10, Math.round((lista.length / maxCount) * 100));
+          const itensHtml = lista.map(d => '<li>' + escapeHtml(d) + '</li>').join('');
+          return '<div class="theme-line">' +
+            '<div class="tname"><span>' + escapeHtml(tema) + '</span><span>' + lista.length + '</span></div>' +
+            '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + CAT_BAR[cat] + '"></div></div>' +
+            '<ul>' + itensHtml + '</ul>' +
+          '</div>';
+        }).join('');
+
+    return '<div class="quad ' + CAT_CLASS[cat] + '">' +
+      '<div class="quad-head"><h2>' + escapeHtml(cat) + '</h2><span>' + totalCat + ' cita' + (totalCat===1?'ção':'ções') + '</span></div>' +
+      '<div class="quad-body">' + corpo + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+loadData();
+</script>
+</body>
+</html>
